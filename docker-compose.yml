@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: lemomate-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: lemomate
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - lemomate-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: lemomate-backend
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/lemomate?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JITSI_DOMAIN: ${JITSI_DOMAIN}
+      JITSI_APP_ID: ${JITSI_APP_ID}
+    networks:
+      - lemomate-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: lemomate-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"  # 使用标准的HTTP端口
+    networks:
+      - lemomate-network
+
+networks:
+  lemomate-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
