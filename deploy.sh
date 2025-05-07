@@ -33,6 +33,16 @@ fi
 echo "构建和启动 Docker 容器..."
 docker-compose up -d --build
 
+# 配置Nginx反向代理
+echo "配置Nginx反向代理..."
+if [ -d "/etc/nginx/conf.d" ]; then
+    sudo cp nginx-proxy.conf /etc/nginx/conf.d/schedulemeet.lemomate.com.conf
+    sudo systemctl reload nginx
+    echo "Nginx配置已更新"
+else
+    echo "警告: 找不到Nginx配置目录，请手动配置Nginx反向代理"
+fi
+
 # 询问是否配置SSL
 read -p "是否配置SSL证书（推荐）？ [y/N] " configure_ssl
 if [[ "$configure_ssl" =~ ^[Yy]$ ]]; then

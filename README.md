@@ -17,6 +17,13 @@ Lemomate是一个基于Jitsi的会议管理系统，提供会议创建、管理�
 - 域名已配置并指向服务器IP（例如：schedulemeet.lemomate.com）
 - Docker和Docker Compose已安装
 - Jitsi Meet已在同一服务器上部署（域名为meet.lemomate.com）
+- Nginx已安装并运行（用于反向代理）
+
+### 端口使用
+
+- Lemomate前端容器使用端口8080
+- Lemomate后端容器使用端口8085
+- Nginx配置为将schedulemeet.lemomate.com的请求代理到端口8080
 
 ### 部署步骤
 
