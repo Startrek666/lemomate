@@ -4,12 +4,21 @@ echo "===== 重新构建前端 ====="
 
 # 停止并删除前端容器
 echo "停止并删除前端容器..."
-docker stop lemomate-frontend
-docker rm lemomate-frontend
+docker stop lemomate-frontend 2>/dev/null || true
+docker rm lemomate-frontend 2>/dev/null || true
 
 # 删除前端镜像
 echo "删除前端镜像..."
-docker rmi lemomate_frontend
+docker rmi lemomate_frontend 2>/dev/null || true
+
+# 检查并创建Docker网络
+echo "检查Docker网络..."
+if ! docker network inspect lemomate-network &>/dev/null; then
+    echo "创建Docker网络: lemomate-network"
+    docker network create lemomate-network
+else
+    echo "Docker网络 lemomate-network 已存在"
+fi
 
 # 重新构建前端
 echo "重新构建前端..."
