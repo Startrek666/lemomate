@@ -1,8 +1,14 @@
-FROM maven:3.8.4-openjdk-11 as build
+FROM maven:3.8.4-openjdk-11 AS build
 WORKDIR /app
+
+# 首先只复制pom.xml，利用Docker缓存机制
 COPY pom.xml .
+# 预先下载依赖
+RUN mvn dependency:go-offline -B
+
+# 然后复制源代码并构建
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -B -Dmaven.test.skip=true
 
 FROM openjdk:11-jre-slim
 WORKDIR /app
