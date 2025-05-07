@@ -21,9 +21,9 @@ Lemomate是一个基于Jitsi的会议管理系统，提供会议创建、管理�
 
 ### 端口使用
 
-- Lemomate前端容器使用端口8080
+- Lemomate前端容器使用端口8089
 - Lemomate后端容器使用端口8085
-- Nginx配置为将schedulemeet.lemomate.com的请求代理到端口8080
+- Nginx配置为将schedulemeet.lemomate.com的请求代理到端口8089
 
 ### 部署步骤
 

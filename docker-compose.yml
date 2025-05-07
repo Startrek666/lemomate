@@ -47,7 +47,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "8080:80"  # 使用端口8080而非80
+      - "8089:80"  # 使用端口8089
     networks:
       - lemomate-network
 
