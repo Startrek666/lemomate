@@ -8,7 +8,7 @@
    - Docker
    - Docker Compose
 
-2. 确保域名 `meet.lemomate.com` 已正确解析到IP地址 `104.233.196.100`
+2. 确保域名 `schedulemeet.lemomate.com` 已正确解析到IP地址 `104.233.196.100`
 
 ## 部署步骤
 
@@ -41,8 +41,8 @@ chmod +x deploy.sh
 ### 3. 验证部署
 
 部署完成后，您可以通过以下URL访问应用：
-- 前端应用：https://meet.lemomate.com:8443
-- 后端API：https://meet.lemomate.com:8443/api
+- 前端应用：https://schedulemeet.lemomate.com:8443
+- 后端API：https://schedulemeet.lemomate.com:8443/api
 
 **注意**：应用使用8087端口(HTTP)和8443端口(HTTPS)，确保这些端口未被其他服务（如Jitsi）占用
 
@@ -103,8 +103,8 @@ SSL证书通常有效期为90天，需要定期更新：
 
 ```bash
 certbot renew
-cp /etc/letsencrypt/live/meet.lemomate.com/fullchain.pem ssl/cert.pem
-cp /etc/letsencrypt/live/meet.lemomate.com/privkey.pem ssl/key.pem
+cp /etc/letsencrypt/live/schedulemeet.lemomate.com/fullchain.pem ssl/cert.pem
+cp /etc/letsencrypt/live/schedulemeet.lemomate.com/privkey.pem ssl/key.pem
 docker-compose restart frontend
 ```
 
