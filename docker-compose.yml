@@ -1,56 +1,58 @@
-version: '3'
+version: '3.8'
 
 services:
+  # MySQL数据库服务
   mysql:
     image: mysql:8.0
     container_name: lemomate-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: lemomate
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: root
     volumes:
       - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
     networks:
-      -
       - lemomate-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 5s
-      retries: 10
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
+  # Spring Boot后端服务
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.backend
+      dockerfile: Dockerfile-backend
     container_name: lemomate-backend
     restart: always
     depends_on:
-      mysql:
-        condition: service_healthy
+      - mysql
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/lemomate?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      JITSI_DOMAIN: ${JITSI_DOMAIN}
-      JITSI_APP_ID: ${JITSI_APP_ID}
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    volumes:
+      - ./uploads:/app/uploads
+    ports:
+      - "8085:8085"
     networks:
       - lemomate-network
 
+  # Vue.js前端服务
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ./frontend
+      dockerfile: Dockerfile-frontend
     container_name: lemomate-frontend
     restart: always
-    depends_on:
-      - backend
     ports:
-      - "8089:80"  # 使用端口8089
+      - "8087:80"
+      - "8443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl
     networks:
       - lemomate-network
+    depends_on:
+      - backend
 
 networks:
   lemomate-network:

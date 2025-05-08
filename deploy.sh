@@ -1,67 +1,30 @@
 #!/bin/bash
 
-# 确保脚本在出错时停止执行
-set -e
+# Lemomate一键部署脚本
+echo "开始部署Lemomate应用到VPS..."
 
-echo "开始部署 Lemomate 项目..."
+# 确保目录存在
+mkdir -p ssl uploads/avatars
 
-# 检查 Docker 和 Docker Compose 是否已安装
-if ! command -v docker &> /dev/null; then
-    echo "Docker 未安装，正在安装..."
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sudo sh get-docker.sh
-    rm get-docker.sh
-fi
+# 安装必要的软件
+echo "安装Docker和Docker Compose..."
+apt-get update
+apt-get install -y docker.io docker-compose certbot
 
-if ! command -v docker-compose &> /dev/null; then
-    echo "Docker Compose 未安装，正在安装..."
-    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-fi
+# 获取SSL证书
+echo "获取SSL证书..."
+certbot certonly --standalone --preferred-challenges http -d meet.lemomate.com --non-interactive --agree-tos --email admin@lemomate.com
 
-# 创建上传目录
-mkdir -p uploads/avatars
+# 复制SSL证书到nginx使用的目录
+echo "配置SSL证书..."
+mkdir -p ssl
+cp /etc/letsencrypt/live/meet.lemomate.com/fullchain.pem ssl/cert.pem
+cp /etc/letsencrypt/live/meet.lemomate.com/privkey.pem ssl/key.pem
 
-# 检查是否已安装certbot
-if ! command -v certbot &> /dev/null; then
-    echo "Certbot 未安装，正在安装..."
-    sudo apt-get update
-    sudo apt-get install -y certbot python3-certbot-nginx
-fi
+# 启动Docker容器
+echo "启动Docker容器..."
+docker-compose up -d
 
-# 构建和启动容器
-echo "构建和启动 Docker 容器..."
-docker-compose up -d --build
-
-# 配置Nginx反向代理
-echo "配置Nginx反向代理..."
-if [ -d "/etc/nginx/conf.d" ]; then
-    sudo cp nginx-proxy.conf /etc/nginx/conf.d/schedulemeet.lemomate.com.conf
-    sudo systemctl reload nginx
-    echo "Nginx配置已更新"
-else
-    echo "警告: 找不到Nginx配置目录，请手动配置Nginx反向代理"
-fi
-
-# 询问是否配置SSL
-read -p "是否配置SSL证书（推荐）？ [y/N] " configure_ssl
-if [[ "$configure_ssl" =~ ^[Yy]$ ]]; then
-    echo "正在配置SSL证书..."
-    sudo certbot --nginx -d schedulemeet.lemomate.com
-
-    # 使用SSL配置替换原来的Nginx配置
-    cp nginx-ssl.conf /etc/nginx/conf.d/schedulemeet.lemomate.com.conf
-    sudo systemctl reload nginx
-
-    echo "SSL配置完成！"
-    echo "您可以通过以下地址访问应用："
-    echo "https://schedulemeet.lemomate.com"
-else
-    echo "跳过SSL配置。"
-    echo "您可以通过以下地址访问应用："
-    echo "http://schedulemeet.lemomate.com"
-fi
-
-echo ""
-echo "部署完成！"
-echo "请确保已将域名 schedulemeet.lemomate.com 指向此服务器的 IP 地址。"
+echo "部署完成！应用已在 https://meet.lemomate.com:8443 上线"
+echo "请确保您的域名 meet.lemomate.com 已经正确解析到IP: 104.233.196.100"
+echo "注意：应用使用8087端口(HTTP)和8443端口(HTTPS)，确保这些端口未被其他服务占用"
